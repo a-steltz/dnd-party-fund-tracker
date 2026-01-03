@@ -17,8 +17,20 @@ import { DomainError, Result, err, ok } from '@/domain/result';
  * @remarks
  * - All denominations must be present.
  * - Values are discrete counts (integers) and must be >= 0.
+ * - This type is intentionally immutable at the API boundary; use {@link MutableDenomVector}
+ *   for scratch calculations inside algorithms and convert back to {@link DenomVector} for outputs.
  */
 export type DenomVector = Readonly<Record<Denomination, number>>;
+
+/**
+ * A mutable denomination vector for in-algorithm scratch work.
+ *
+ * @remarks
+ * Domain functions should still expose {@link DenomVector} inputs/outputs to keep invariants easy
+ * to reason about. Use this type only for local mutation within an algorithm, then convert back
+ * with {@link toDenomVector}.
+ */
+export type MutableDenomVector = Record<Denomination, number>;
 
 /**
  * Creates a zero-filled denomination vector.
@@ -30,6 +42,52 @@ export function makeZeroDenomVector(): DenomVector {
         [Denomination.EP]: 0,
         [Denomination.SP]: 0,
         [Denomination.CP]: 0
+    };
+}
+
+/**
+ * Creates a mutable zero-filled denomination vector.
+ *
+ * @remarks
+ * Use this when an algorithm benefits from in-place updates (e.g., tight loops), then return an
+ * immutable {@link DenomVector} via {@link toDenomVector}.
+ */
+export function makeMutableZeroDenomVector(): MutableDenomVector {
+    return {
+        [Denomination.PP]: 0,
+        [Denomination.GP]: 0,
+        [Denomination.EP]: 0,
+        [Denomination.SP]: 0,
+        [Denomination.CP]: 0
+    };
+}
+
+/**
+ * Clones an immutable denomination vector into a mutable one.
+ */
+export function cloneToMutableDenomVector(denoms: DenomVector): MutableDenomVector {
+    return {
+        [Denomination.PP]: denoms[Denomination.PP],
+        [Denomination.GP]: denoms[Denomination.GP],
+        [Denomination.EP]: denoms[Denomination.EP],
+        [Denomination.SP]: denoms[Denomination.SP],
+        [Denomination.CP]: denoms[Denomination.CP]
+    };
+}
+
+/**
+ * Clones a mutable denomination vector into an immutable {@link DenomVector}.
+ *
+ * @remarks
+ * This is a shallow clone; coin counts are primitives.
+ */
+export function toDenomVector(denoms: MutableDenomVector): DenomVector {
+    return {
+        [Denomination.PP]: denoms[Denomination.PP],
+        [Denomination.GP]: denoms[Denomination.GP],
+        [Denomination.EP]: denoms[Denomination.EP],
+        [Denomination.SP]: denoms[Denomination.SP],
+        [Denomination.CP]: denoms[Denomination.CP]
     };
 }
 

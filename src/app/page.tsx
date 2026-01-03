@@ -62,6 +62,10 @@ function errorToMessage(code: ErrorCode): string {
             return 'Imported JSON is not a valid ledger document.';
         case ErrorCode.NOT_IMPLEMENTED:
             return 'This feature is still under construction.';
+        case ErrorCode.MISSING_REQUIRED_FIELD:
+            return 'Some required inputs are missing.';
+        case ErrorCode.INVALID_PREALLOCATION_MODE:
+            return 'Invalid pre-allocation mode.';
         default:
             return 'An unexpected error occurred.';
     }

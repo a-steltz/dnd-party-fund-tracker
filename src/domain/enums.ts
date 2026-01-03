@@ -118,5 +118,9 @@ export enum ErrorCode {
     /** Imported JSON uses an unsupported schema version. */
     IMPORT_UNSUPPORTED_SCHEMA_VERSION = 'IMPORT_UNSUPPORTED_SCHEMA_VERSION',
     /** Feature is intentionally not implemented yet. */
-    NOT_IMPLEMENTED = 'NOT_IMPLEMENTED'
+    NOT_IMPLEMENTED = 'NOT_IMPLEMENTED',
+    /** A required input field is missing for the chosen mode. */
+    MISSING_REQUIRED_FIELD = 'MISSING_REQUIRED_FIELD',
+    /** Pre-allocation mode value is invalid/unsupported. */
+    INVALID_PREALLOCATION_MODE = 'INVALID_PREALLOCATION_MODE'
 }
