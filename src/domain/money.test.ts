@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
 
-import { DEFAULT_CURRENCY_SETTINGS } from '@/domain/currency';
 import { Denomination, ErrorCode } from '@/domain/enums';
 import { addDenomVectors, makeZeroDenomVector, subtractDenomVectors, totalCp } from '@/domain/money';
 
@@ -50,7 +49,7 @@ describe('domain/money', () => {
         }
     });
 
-    it('computes totalCp using currency settings', () => {
+    it('computes totalCp using fixed V1 coin values', () => {
         const denoms = {
             ...makeZeroDenomVector(),
             [Denomination.PP]: 1,
@@ -61,6 +60,6 @@ describe('domain/money', () => {
         };
 
         // 1pp=1000, 2gp=200, 1ep=50, 3sp=30, 4cp=4
-        expect(totalCp(denoms, DEFAULT_CURRENCY_SETTINGS)).toBe(1284);
+        expect(totalCp(denoms)).toBe(1284);
     });
 });

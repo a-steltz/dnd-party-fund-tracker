@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 
-import { DEFAULT_SETTINGS } from '@/domain/currency';
 import { ErrorCode, PreAllocationMode, TransactionType } from '@/domain/enums';
 import { appendTransaction, computeBalance, createNewLedgerDocument, LedgerDocument, withLastModifiedAt } from '@/domain/ledger';
 import { makeZeroDenomVector } from '@/domain/money';
@@ -61,7 +60,7 @@ function errorToMessage(code: ErrorCode): string {
             return 'Could not read or parse the imported JSON.';
         case ErrorCode.IMPORT_INVALID_SCHEMA:
         case ErrorCode.IMPORT_UNSUPPORTED_SCHEMA_VERSION:
-            return 'Imported JSON is not a valid V1 ledger document.';
+            return 'Imported JSON is not a valid ledger document.';
         default:
             return 'An unexpected error occurred.';
     }
@@ -152,7 +151,7 @@ export default function HomePage() {
             mode: preMode,
             fixed: preMode === PreAllocationMode.Fixed ? fixedSetAside : undefined,
             percent: preMode === PreAllocationMode.Percent ? percentSetAside / 100 : undefined,
-            settings: ledger.settings ?? DEFAULT_SETTINGS
+            settings: ledger.settings
         });
 
         if (!result.ok) {

@@ -17,13 +17,16 @@ import { DomainError, Result, err, ok } from '@/domain/result';
 
 /**
  * Supported ledger schema versions for V1.
+ *
+ * @remarks
+ * V1.1 (schemaVersion=2) removes persisted currency ratios; denominations are fixed constants.
  */
-export type SchemaVersion = 1;
+export type SchemaVersion = 2;
 
 /**
  * Ledger schema version constant for V1.
  */
-export const SCHEMA_VERSION_V1: SchemaVersion = 1;
+export const SCHEMA_VERSION_V2: SchemaVersion = 2;
 
 /**
  * A single append-only ledger transaction.
@@ -62,7 +65,7 @@ export type LedgerDocument = Readonly<{
  */
 export function createNewLedgerDocument(nowIsoUtc: string): LedgerDocument {
     return {
-        schemaVersion: SCHEMA_VERSION_V1,
+        schemaVersion: SCHEMA_VERSION_V2,
         createdAt: nowIsoUtc,
         lastModifiedAt: nowIsoUtc,
         settings: DEFAULT_SETTINGS,
@@ -174,7 +177,7 @@ export function validateLedgerDocumentObject(value: unknown): Result<LedgerDocum
     const record = value as Record<string, unknown>;
 
     const schemaVersion = record.schemaVersion;
-    if (schemaVersion !== SCHEMA_VERSION_V1) {
+    if (schemaVersion !== SCHEMA_VERSION_V2) {
         return err({
             code: ErrorCode.IMPORT_UNSUPPORTED_SCHEMA_VERSION,
             details: { schemaVersion }
@@ -194,29 +197,8 @@ export function validateLedgerDocumentObject(value: unknown): Result<LedgerDocum
 
     // V1 settings: required shape, but not editable in the V1 UI.
     const settingsRecord = settings as Record<string, unknown>;
-    if (typeof settingsRecord.currency !== 'object' || settingsRecord.currency === null) {
-        return err({ code: ErrorCode.IMPORT_INVALID_SCHEMA, details: { field: 'settings.currency' } });
-    }
     if (typeof settingsRecord.lootSplit !== 'object' || settingsRecord.lootSplit === null) {
         return err({ code: ErrorCode.IMPORT_INVALID_SCHEMA, details: { field: 'settings.lootSplit' } });
-    }
-
-    const currencyRecord = settingsRecord.currency as Record<string, unknown>;
-    const currency = {
-        [Denomination.PP]: Number(currencyRecord.pp),
-        [Denomination.GP]: Number(currencyRecord.gp),
-        [Denomination.EP]: Number(currencyRecord.ep),
-        [Denomination.SP]: Number(currencyRecord.sp),
-        [Denomination.CP]: Number(currencyRecord.cp)
-    };
-    for (const denom of [Denomination.PP, Denomination.GP, Denomination.EP, Denomination.SP, Denomination.CP]) {
-        const value = currency[denom];
-        if (!Number.isFinite(value) || !Number.isInteger(value) || value <= 0) {
-            return err({
-                code: ErrorCode.IMPORT_INVALID_SCHEMA,
-                details: { field: 'settings.currency', denom, value }
-            });
-        }
     }
 
     const lootSplitRecord = settingsRecord.lootSplit as Record<string, unknown>;
@@ -231,7 +213,6 @@ export function validateLedgerDocumentObject(value: unknown): Result<LedgerDocum
     }
 
     const parsedSettings: Settings = {
-        currency,
         lootSplit: { fairnessToleranceCp, percentageMode: PercentageMode.UnderOnly }
     };
 
@@ -300,7 +281,7 @@ export function validateLedgerDocumentObject(value: unknown): Result<LedgerDocum
     }
 
     return ok({
-        schemaVersion: SCHEMA_VERSION_V1,
+        schemaVersion: SCHEMA_VERSION_V2,
         createdAt,
         lastModifiedAt,
         settings: parsedSettings,

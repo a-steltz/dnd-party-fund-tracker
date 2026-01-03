@@ -7,7 +7,7 @@
  * - No conversion/making change.
  */
 
-import { CurrencySettings } from '@/domain/currency';
+import { COIN_VALUE_CP } from '@/domain/currency';
 import { Denomination, DENOMINATIONS_DESC, ErrorCode } from '@/domain/enums';
 import { DomainError, Result, err, ok } from '@/domain/result';
 
@@ -138,11 +138,11 @@ export function subtractDenomVectors(a: DenomVector, b: DenomVector): Result<Den
  * @remarks
  * This does not imply conversion; it is a computed total used for percent targeting and reporting.
  */
-export function totalCp(denoms: DenomVector, currency: CurrencySettings): number {
+export function totalCp(denoms: DenomVector): number {
     // This is safe because V1 uses small integers; callers can treat this as informational only.
     let sum = 0;
     for (const denom of DENOMINATIONS_DESC) {
-        sum += denoms[denom] * currency[denom];
+        sum += denoms[denom] * COIN_VALUE_CP[denom];
     }
     return sum;
 }

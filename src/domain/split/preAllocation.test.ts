@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
 
-import { DEFAULT_CURRENCY_SETTINGS } from '@/domain/currency';
 import { Denomination, ErrorCode, PreAllocationMode } from '@/domain/enums';
 import { makeZeroDenomVector, totalCp } from '@/domain/money';
 import { computePreAllocation } from '@/domain/split/preAllocation';
@@ -16,8 +15,7 @@ describe('domain/split/preAllocation', () => {
         const result = computePreAllocation({
             loot,
             mode: PreAllocationMode.Fixed,
-            fixed,
-            currency: DEFAULT_CURRENCY_SETTINGS
+            fixed
         });
 
         expect(result.ok).toBe(false);
@@ -37,13 +35,12 @@ describe('domain/split/preAllocation', () => {
         const result = computePreAllocation({
             loot,
             mode: PreAllocationMode.Percent,
-            percent,
-            currency: DEFAULT_CURRENCY_SETTINGS
+            percent
         });
 
         expect(result.ok).toBe(true);
         if (result.ok) {
-            const selected = totalCp(result.value.setAside, DEFAULT_CURRENCY_SETTINGS);
+            const selected = totalCp(result.value.setAside);
             expect(result.value.percentTargetCp).toBe(90);
             expect(selected).toBeLessThanOrEqual(90);
         }
@@ -60,14 +57,12 @@ describe('domain/split/preAllocation', () => {
         const a = computePreAllocation({
             loot,
             mode: PreAllocationMode.Percent,
-            percent: 0.5,
-            currency: DEFAULT_CURRENCY_SETTINGS
+            percent: 0.5
         });
         const b = computePreAllocation({
             loot,
             mode: PreAllocationMode.Percent,
-            percent: 0.5,
-            currency: DEFAULT_CURRENCY_SETTINGS
+            percent: 0.5
         });
 
         expect(a).toEqual(b);

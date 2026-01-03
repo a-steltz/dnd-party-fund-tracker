@@ -1,10 +1,10 @@
 /**
  * src/domain/currency.ts
- * Currency settings for V1.
+ * Currency constants and loot split settings.
  *
- * V1 rule: ratios exist but the UI does not expose editing.
- * V1 rule: no conversion/making change anywhere; these values are only used for cp totals and
- * percent pre-allocation targeting.
+ * V1 rule: denomination relationships are fixed (pp/gp/ep/sp/cp) and are NOT persisted.
+ * V1 rule: no conversion/making change anywhere; cp values are used only for informational totals,
+ * percent pre-allocation targeting, and fairness tolerance comparisons.
  */
 
 import { Denomination, PercentageMode } from '@/domain/enums';
@@ -13,9 +13,9 @@ import { Denomination, PercentageMode } from '@/domain/enums';
  * Maps each denomination to its value in copper pieces (cp).
  *
  * @remarks
- * This is used for totals and percent targeting only; V1 forbids conversion/making change.
+ * This mapping is a fixed V1 constant and is not exported/imported in the ledger JSON.
  */
-export type CurrencySettings = Readonly<Record<Denomination, number>>;
+export type CoinValueCpByDenomination = Readonly<Record<Denomination, number>>;
 
 /**
  * Settings governing the loot split behavior.
@@ -32,17 +32,16 @@ export type LootSplitSettings = Readonly<{
  * V1 UI does not allow editing settings; these exist for forward compatibility.
  */
 export type Settings = Readonly<{
-    currency: CurrencySettings;
     lootSplit: LootSplitSettings;
 }>;
 
 /**
- * Default D&D coin values in cp for V1.
+ * Fixed D&D coin values in cp for V1.
  *
  * @remarks
  * pp=1000, gp=100, ep=50, sp=10, cp=1
  */
-export const DEFAULT_CURRENCY_SETTINGS: CurrencySettings = {
+export const COIN_VALUE_CP: CoinValueCpByDenomination = {
     [Denomination.PP]: 1000,
     [Denomination.GP]: 100,
     [Denomination.EP]: 50,
@@ -62,6 +61,5 @@ export const DEFAULT_LOOT_SPLIT_SETTINGS: LootSplitSettings = {
  * Default settings stored in a new ledger document.
  */
 export const DEFAULT_SETTINGS: Settings = {
-    currency: DEFAULT_CURRENCY_SETTINGS,
     lootSplit: DEFAULT_LOOT_SPLIT_SETTINGS
 };

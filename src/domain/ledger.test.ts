@@ -62,7 +62,7 @@ describe('domain/ledger', () => {
 
     it('validateLedgerDocumentObject validates imported ledgers and prevents overdraft', () => {
         const imported = {
-            schemaVersion: 1,
+            schemaVersion: 2,
             createdAt: '2020-01-01T00:00:00.000Z',
             lastModifiedAt: '2020-01-01T00:00:00.000Z',
             settings: DEFAULT_SETTINGS,

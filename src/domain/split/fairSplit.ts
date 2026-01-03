@@ -25,7 +25,7 @@
  * - Determinism: ties and ordering are explicitly specified
  */
 
-import { Settings } from '@/domain/currency';
+import { COIN_VALUE_CP, Settings } from '@/domain/currency';
 import { Denomination, DENOMINATIONS_DESC, ErrorCode, TransactionType } from '@/domain/enums';
 import { Transaction } from '@/domain/ledger';
 import { addDenomVectors, DenomVector, isAllZero, makeZeroDenomVector, validateDenomVector } from '@/domain/money';
@@ -117,15 +117,14 @@ function computeNewSpreadIfAssigned(
  * @remarks
  * The result is deterministically sorted by cp value descending, then denomination rank.
  */
-function expandCoins(loot: DenomVector, settings: Settings): Coin[] {
+function expandCoins(loot: DenomVector): Coin[] {
     const coins: Coin[] = [];
-    const currency = settings.currency;
 
     // Expand in deterministic denom order (pp->...->cp).
-    // Sorting below by valueCp makes this robust even if currency values changed in future versions.
+    // Sorting below by valueCp keeps behavior explicit and deterministic.
     for (const denom of DENOMINATIONS_DESC) {
         const count = loot[denom];
-        const valueCp = currency[denom];
+        const valueCp = COIN_VALUE_CP[denom];
         for (let i = 0; i < count; i++) {
             coins.push({ denom, valueCp });
         }
@@ -177,7 +176,7 @@ export function computeFairSplit(params: Readonly<{
     let remainder = makeZeroDenomVector();
 
     const toleranceCp = params.settings.lootSplit.fairnessToleranceCp;
-    const coins = expandCoins(params.remainingLoot, params.settings);
+    const coins = expandCoins(params.remainingLoot);
 
     for (const coin of coins) {
         const minIndex = indexOfMinTotal(totalsCp);
@@ -223,8 +222,7 @@ export function computeLootSplit(input: LootSplitInput): Result<LootSplitResult,
         loot: input.loot,
         mode: input.mode,
         fixed: input.fixed,
-        percent: input.percent,
-        currency: input.settings.currency
+        percent: input.percent
     });
     if (!pre.ok) return pre;
 

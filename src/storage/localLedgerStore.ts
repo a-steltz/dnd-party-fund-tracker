@@ -12,9 +12,9 @@ import { LedgerDocument } from '@/domain/ledger';
 import { DomainError, Result, err, ok } from '@/domain/result';
 
 /**
- * localStorage key for the persisted V1 ledger document JSON.
+ * localStorage key for the persisted ledger document JSON.
  */
-export const LEDGER_STORAGE_KEY = 'dnd_party_fund_ledger_v1';
+export const LEDGER_STORAGE_KEY = 'dnd_party_fund_ledger_v2';
 
 /**
  * localStorage key for the optional "last exported" timestamp.

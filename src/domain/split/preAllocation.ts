@@ -16,7 +16,7 @@
  * existing discrete coins to route to the party fund.
  */
 
-import { CurrencySettings } from '@/domain/currency';
+import { COIN_VALUE_CP } from '@/domain/currency';
 import { Denomination, DENOMINATIONS_DESC, ErrorCode, PreAllocationMode } from '@/domain/enums';
 import { addDenomVectors, DenomVector, makeZeroDenomVector, subtractDenomVectors, totalCp, validateDenomVector } from '@/domain/money';
 import { DomainError, Result, err, ok } from '@/domain/result';
@@ -46,7 +46,6 @@ export function computePreAllocation(params: Readonly<{
     mode: PreAllocationMode;
     fixed?: DenomVector;
     percent?: number;
-    currency: CurrencySettings;
 }>): Result<PreAllocationResult, DomainError> {
     const lootValidated = validateDenomVector(params.loot);
     if (!lootValidated.ok) return lootValidated;
@@ -80,7 +79,7 @@ export function computePreAllocation(params: Readonly<{
         return err({ code: ErrorCode.INVALID_PERCENT, details: { percent } });
     }
 
-    const lootTotal = totalCp(params.loot, params.currency);
+    const lootTotal = totalCp(params.loot);
     const targetCp = Math.floor(lootTotal * percent);
 
     // Deterministic greedy selection:
@@ -94,7 +93,7 @@ export function computePreAllocation(params: Readonly<{
     let selectedCp = 0;
 
     for (const denom of DENOMINATIONS_DESC) {
-        const coinValueCp = params.currency[denom];
+        const coinValueCp = COIN_VALUE_CP[denom];
         const available = params.loot[denom];
         const remainingTarget = targetCp - selectedCp;
 
