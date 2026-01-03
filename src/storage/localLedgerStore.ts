@@ -14,7 +14,7 @@ import { DomainError, Result, err, ok } from '@/domain/result';
 /**
  * localStorage key for the persisted ledger document JSON.
  */
-export const LEDGER_STORAGE_KEY = 'dnd_party_fund_ledger_v2';
+export const LEDGER_STORAGE_KEY = 'dnd_party_fund_ledger_v3';
 
 /**
  * localStorage key for the optional "last exported" timestamp.

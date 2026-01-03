@@ -10,8 +10,7 @@
  * - Domain code must not throw; errors are returned via Result.
  */
 
-import { DEFAULT_SETTINGS, Settings } from '@/domain/currency';
-import { Denomination, ErrorCode, PercentageMode, TransactionType } from '@/domain/enums';
+import { Denomination, ErrorCode, TransactionType } from '@/domain/enums';
 import { addDenomVectors, DenomVector, isAllZero, makeZeroDenomVector, subtractDenomVectors, validateDenomVector } from '@/domain/money';
 import { DomainError, Result, err, ok } from '@/domain/result';
 
@@ -19,14 +18,14 @@ import { DomainError, Result, err, ok } from '@/domain/result';
  * Supported ledger schema versions for V1.
  *
  * @remarks
- * V1.1 (schemaVersion=2) removes persisted currency ratios; denominations are fixed constants.
+ * V1.2 (schemaVersion=3) removes all persisted settings; behavior is hard-coded in the domain.
  */
-export type SchemaVersion = 2;
+export type SchemaVersion = 3;
 
 /**
  * Ledger schema version constant for V1.
  */
-export const SCHEMA_VERSION_V2: SchemaVersion = 2;
+export const SCHEMA_VERSION_V3: SchemaVersion = 3;
 
 /**
  * A single append-only ledger transaction.
@@ -54,7 +53,6 @@ export type LedgerDocument = Readonly<{
     schemaVersion: SchemaVersion;
     createdAt: string; // ISO-UTC string (caller supplied)
     lastModifiedAt: string; // ISO-UTC string (caller supplied)
-    settings: Settings;
     transactions: readonly Transaction[];
 }>;
 
@@ -65,10 +63,9 @@ export type LedgerDocument = Readonly<{
  */
 export function createNewLedgerDocument(nowIsoUtc: string): LedgerDocument {
     return {
-        schemaVersion: SCHEMA_VERSION_V2,
+        schemaVersion: SCHEMA_VERSION_V3,
         createdAt: nowIsoUtc,
         lastModifiedAt: nowIsoUtc,
-        settings: DEFAULT_SETTINGS,
         transactions: []
     };
 }
@@ -177,7 +174,7 @@ export function validateLedgerDocumentObject(value: unknown): Result<LedgerDocum
     const record = value as Record<string, unknown>;
 
     const schemaVersion = record.schemaVersion;
-    if (schemaVersion !== SCHEMA_VERSION_V2) {
+    if (schemaVersion !== SCHEMA_VERSION_V3) {
         return err({
             code: ErrorCode.IMPORT_UNSUPPORTED_SCHEMA_VERSION,
             details: { schemaVersion }
@@ -190,31 +187,7 @@ export function validateLedgerDocumentObject(value: unknown): Result<LedgerDocum
         return err({ code: ErrorCode.IMPORT_INVALID_SCHEMA, details: { field: 'createdAt/lastModifiedAt' } });
     }
 
-    const settings = record.settings;
-    if (typeof settings !== 'object' || settings === null) {
-        return err({ code: ErrorCode.IMPORT_INVALID_SCHEMA, details: { field: 'settings' } });
-    }
-
-    // V1 settings: required shape, but not editable in the V1 UI.
-    const settingsRecord = settings as Record<string, unknown>;
-    if (typeof settingsRecord.lootSplit !== 'object' || settingsRecord.lootSplit === null) {
-        return err({ code: ErrorCode.IMPORT_INVALID_SCHEMA, details: { field: 'settings.lootSplit' } });
-    }
-
-    const lootSplitRecord = settingsRecord.lootSplit as Record<string, unknown>;
-    const fairnessToleranceCp = Number(lootSplitRecord.fairnessToleranceCp);
-    const percentageMode = lootSplitRecord.percentageMode;
-
-    if (!Number.isFinite(fairnessToleranceCp) || !Number.isInteger(fairnessToleranceCp) || fairnessToleranceCp < 0) {
-        return err({ code: ErrorCode.IMPORT_INVALID_SCHEMA, details: { field: 'settings.lootSplit.fairnessToleranceCp' } });
-    }
-    if (percentageMode !== PercentageMode.UnderOnly) {
-        return err({ code: ErrorCode.IMPORT_INVALID_SCHEMA, details: { field: 'settings.lootSplit.percentageMode' } });
-    }
-
-    const parsedSettings: Settings = {
-        lootSplit: { fairnessToleranceCp, percentageMode: PercentageMode.UnderOnly }
-    };
+    // V1.2: Settings are not persisted; they are hard-coded in the domain.
 
     const transactionsValue = record.transactions;
     if (!Array.isArray(transactionsValue)) {
@@ -281,10 +254,9 @@ export function validateLedgerDocumentObject(value: unknown): Result<LedgerDocum
     }
 
     return ok({
-        schemaVersion: SCHEMA_VERSION_V2,
+        schemaVersion: SCHEMA_VERSION_V3,
         createdAt,
         lastModifiedAt,
-        settings: parsedSettings,
         transactions
     });
 }

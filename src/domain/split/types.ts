@@ -3,7 +3,6 @@
  * Types used by the loot split calculator (pure).
  */
 
-import { Settings } from '@/domain/currency';
 import { PreAllocationMode } from '@/domain/enums';
 import { DenomVector } from '@/domain/money';
 
@@ -16,7 +15,6 @@ export type LootSplitInput = Readonly<{
     mode: PreAllocationMode;
     fixed?: DenomVector;
     percent?: number; // 0..1
-    settings: Settings;
 }>;
 
 /**

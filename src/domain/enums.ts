@@ -116,5 +116,7 @@ export enum ErrorCode {
     /** Imported JSON fails schema validation. */
     IMPORT_INVALID_SCHEMA = 'IMPORT_INVALID_SCHEMA',
     /** Imported JSON uses an unsupported schema version. */
-    IMPORT_UNSUPPORTED_SCHEMA_VERSION = 'IMPORT_UNSUPPORTED_SCHEMA_VERSION'
+    IMPORT_UNSUPPORTED_SCHEMA_VERSION = 'IMPORT_UNSUPPORTED_SCHEMA_VERSION',
+    /** Feature is intentionally not implemented yet. */
+    NOT_IMPLEMENTED = 'NOT_IMPLEMENTED'
 }

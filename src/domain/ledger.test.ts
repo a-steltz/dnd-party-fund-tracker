@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
 
-import { DEFAULT_SETTINGS } from '@/domain/currency';
 import { Denomination, ErrorCode, TransactionType } from '@/domain/enums';
 import { appendTransaction, computeBalance, createNewLedgerDocument, validateLedgerDocumentObject } from '@/domain/ledger';
 import { makeZeroDenomVector } from '@/domain/money';
@@ -62,10 +61,9 @@ describe('domain/ledger', () => {
 
     it('validateLedgerDocumentObject validates imported ledgers and prevents overdraft', () => {
         const imported = {
-            schemaVersion: 2,
+            schemaVersion: 3,
             createdAt: '2020-01-01T00:00:00.000Z',
             lastModifiedAt: '2020-01-01T00:00:00.000Z',
-            settings: DEFAULT_SETTINGS,
             transactions: [
                 {
                     id: 'd1',

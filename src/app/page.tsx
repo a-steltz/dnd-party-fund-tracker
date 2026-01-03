@@ -5,7 +5,6 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { ErrorCode, PreAllocationMode, TransactionType } from '@/domain/enums';
 import { appendTransaction, computeBalance, createNewLedgerDocument, LedgerDocument, withLastModifiedAt } from '@/domain/ledger';
 import { makeZeroDenomVector } from '@/domain/money';
-import { computeLootSplit, createCommitToFundDepositTransaction } from '@/domain/split/fairSplit';
 import { LootSplitResult } from '@/domain/split/types';
 import { ledgerToJsonString, parseLedgerFromJsonString, readTextFile, downloadJson } from '@/storage/importExport';
 import { loadLedgerJsonFromLocalStorage, saveLedgerToLocalStorage, setLastExportedAt } from '@/storage/localLedgerStore';
@@ -61,6 +60,8 @@ function errorToMessage(code: ErrorCode): string {
         case ErrorCode.IMPORT_INVALID_SCHEMA:
         case ErrorCode.IMPORT_UNSUPPORTED_SCHEMA_VERSION:
             return 'Imported JSON is not a valid ledger document.';
+        case ErrorCode.NOT_IMPLEMENTED:
+            return 'This feature is still under construction.';
         default:
             return 'An unexpected error occurred.';
     }
@@ -143,65 +144,18 @@ export default function HomePage() {
      * Runs the loot split calculator and stores the result in component state.
      */
     function handleCalculateSplit(): void {
-        setBanner({ kind: 'none' });
-
-        const result = computeLootSplit({
-            loot: lootPile,
-            partySize,
-            mode: preMode,
-            fixed: preMode === PreAllocationMode.Fixed ? fixedSetAside : undefined,
-            percent: preMode === PreAllocationMode.Percent ? percentSetAside / 100 : undefined,
-            settings: ledger.settings
-        });
-
-        if (!result.ok) {
-            setSplitResult(null);
-            setBanner({ kind: 'error', message: errorToMessage(result.error.code) });
-            return;
-        }
-
-        setSplitResult(result.value);
+        // TODO(ui): Wire up Calculate to the new domain loot split functions once implemented.
+        // Intentionally no-op for now.
+        return;
     }
 
     /**
      * Commits the split's party-fund (set-aside + remainder) as ONE deposit transaction.
      */
     function handleCommitSplit(): void {
-        if (!splitResult) return;
-        setBanner({ kind: 'none' });
-
-        const note = `Loot split commit: partySize=${partySize}, mode=${preMode}, fund=${formatDenomsInline(
-            splitResult.partyFundTotalFromOperation
-        )}`;
-
-        const txResult = createCommitToFundDepositTransaction({
-            id: randomUuid(),
-            timestampIsoUtc: nowIsoUtc(),
-            setAside: splitResult.partyFundSetAside,
-            remainder: splitResult.partyFundRemainder,
-            note,
-            meta: {
-                loot: lootPile,
-                partySize,
-                mode: preMode,
-                fixed: preMode === PreAllocationMode.Fixed ? fixedSetAside : undefined,
-                percent: preMode === PreAllocationMode.Percent ? percentSetAside / 100 : undefined
-            }
-        });
-
-        if (!txResult.ok) {
-            setBanner({ kind: 'error', message: errorToMessage(txResult.error.code) });
-            return;
-        }
-
-        const next = appendTransaction(ledger, txResult.value);
-        if (!next.ok) {
-            setBanner({ kind: 'error', message: errorToMessage(next.error.code) });
-            return;
-        }
-
-        setLedger(next.value);
-        setBanner({ kind: 'success', message: 'Committed to party fund (one deposit transaction).' });
+        // TODO(ui): Wire up Commit to Fund to the new domain transaction builder once implemented.
+        // Intentionally no-op for now.
+        return;
     }
 
     /**
