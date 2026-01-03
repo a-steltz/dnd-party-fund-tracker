@@ -1,0 +1,46 @@
+.nav {
+    display: flex;
+    gap: 8px;
+    padding: 10px;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    border-radius: 14px;
+    background: rgba(0, 0, 0, 0.02);
+    margin: 16px 0;
+}
+
+.tab {
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    background: rgba(255, 255, 255, 0.8);
+    color: rgba(0, 0, 0, 0.86);
+    padding: 10px 12px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.tabActive {
+    composes: tab;
+    background: rgba(0, 0, 0, 0.86);
+    color: rgba(255, 255, 255, 0.96);
+    border-color: rgba(0, 0, 0, 0.28);
+}
+
+@media (prefers-color-scheme: dark) {
+    .nav {
+        border-color: rgba(255, 255, 255, 0.18);
+        background: rgba(255, 255, 255, 0.04);
+    }
+
+    .tab {
+        border-color: rgba(255, 255, 255, 0.18);
+        background: rgba(255, 255, 255, 0.06);
+        color: rgba(255, 255, 255, 0.9);
+    }
+
+    .tabActive {
+        background: rgba(255, 255, 255, 0.92);
+        color: rgba(0, 0, 0, 0.9);
+        border-color: rgba(255, 255, 255, 0.3);
+    }
+}
+
