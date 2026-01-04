@@ -14,13 +14,14 @@
  * TODO(ui): Re-enable Calculate/Commit actions once the new domain logic exists.
  */
 
-import { DENOMINATIONS_DESC, ErrorCode, PreAllocationMode } from '@/domain/enums';
+import { DENOMINATIONS_DESC, ErrorCode, PreAllocationMode, TransactionType } from '@/domain/enums';
 import { Transaction } from '@/domain/ledger';
 import { COIN_VALUE_CP } from '@/domain/currency';
 import {
     addDenomVectors,
     cloneToMutableDenomVector,
     DenomVector,
+    isAllZero,
     makeMutableZeroDenomVector,
     makeZeroDenomVector,
     toDenomVector,
@@ -275,5 +276,19 @@ export function createCommitToFundDepositTransaction(_params: Readonly<{
     note: string;
     meta?: unknown;
 }>): Result<Transaction, DomainError> {
-    return err({ code: ErrorCode.NOT_IMPLEMENTED, details: { feature: 'lootSplit.commitToFund' } });
+    const amounts = addDenomVectors(_params.setAside, _params.remainder);
+    const validated = validateDenomVector(amounts);
+    if (!validated.ok) return validated;
+    if (isAllZero(amounts)) {
+        return err({ code: ErrorCode.ZERO_AMOUNT_TRANSACTION });
+    }
+
+    return ok({
+        id: _params.id,
+        timestamp: _params.timestampIsoUtc,
+        type: TransactionType.Deposit,
+        amounts,
+        note: _params.note,
+        meta: _params.meta
+    });
 }
