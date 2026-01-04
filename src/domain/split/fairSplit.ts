@@ -16,7 +16,7 @@
 
 import { DENOMINATIONS_DESC, ErrorCode, PreAllocationMode } from '@/domain/enums';
 import { Transaction } from '@/domain/ledger';
-import { cloneToMutableDenomVector, DenomVector, makeMutableZeroDenomVector, makeZeroDenomVector, toDenomVector, validateDenomVector } from '@/domain/money';
+import { addDenomVectors, cloneToMutableDenomVector, DenomVector, makeMutableZeroDenomVector, makeZeroDenomVector, toDenomVector, validateDenomVector } from '@/domain/money';
 import { DomainError, Result, err, ok } from '@/domain/result';
 import { LootSplitInput, LootSplitResult } from '@/domain/split/types';
 import { totalCp} from '@/domain/money'
@@ -31,7 +31,10 @@ import { COIN_VALUE_CP } from '../currency';
  * @remarks
  * IMplementation in progress
  */
-export function computeLootSplit(input: LootSplitInput): Result<LootSplitResult, DomainError> {
+export function computeLootSplit(input: LootSplitInput): Result<
+    Readonly<LootSplitResult>,
+    DomainError
+> {
     // First, do some basic validation that applies to all cases. 
     if (!Number.isInteger(input.partySize) || input.partySize < 1) {
         return err({ code: ErrorCode.INVALID_PARTY_SIZE, details: { partySize: input.partySize } });
@@ -92,14 +95,21 @@ export function computeLootSplit(input: LootSplitInput): Result<LootSplitResult,
 
 
     // Split up the reamining loot;
-    
 
-    void remainingLoot;
-    void partyFundSetAside;
-    
+    const fairSplitResult = computeFairSplitInternal(remainingLoot,input.partySize)
 
+    const perMemberPayout = fairSplitResult.perMemberPayout;
+    const partyFundRemainder = fairSplitResult.partyFundRemainder;
+    const partyFundTotalFromOperation = addDenomVectors(partyFundSetAside,partyFundRemainder);
 
-    return err({ code: ErrorCode.NOT_IMPLEMENTED, details: { feature: 'lootSplit.computeLootSplit' } });
+    return ok(
+        {
+            perMemberPayout : perMemberPayout ,
+            partyFundSetAside : partyFundSetAside , 
+            partyFundRemainder : partyFundRemainder , 
+            partyFundTotalFromOperation : partyFundTotalFromOperation
+        }
+    )
 }
 
 function computeFixedPreAllocationInternal(
@@ -241,7 +251,7 @@ function computeFairSplitInternal(
     partySize: number
 ):
     {
-        memberPayoutVector: DenomVector;
+        perMemberPayout: DenomVector;
         partyFundRemainder: DenomVector;
     } {
     
@@ -256,7 +266,7 @@ function computeFairSplitInternal(
     }
 
     return {
-        memberPayoutVector: toDenomVector(perMember),
+        perMemberPayout: toDenomVector(perMember),
         partyFundRemainder: toDenomVector(remainder)
     };
 }

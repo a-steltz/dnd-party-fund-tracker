@@ -407,7 +407,7 @@ export default function HomePage() {
                                 </div>
                                 <div className={styles.card}>
                                     <div className={styles.cardLabel}>Per member</div>
-                                    <div className={styles.mono}>{formatDenomsInline(splitResult.perMember)}</div>
+                                    <div className={styles.mono}>{formatDenomsInline(splitResult.perMemberPayout)}</div>
                                 </div>
                             </div>
 

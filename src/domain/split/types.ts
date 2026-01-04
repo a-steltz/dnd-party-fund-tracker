@@ -25,8 +25,20 @@ export type LootSplitInput = Readonly<{
  * `partySize * perMember + partyFundSetAside + partyFundRemainder == input loot` (by denomination).
  */
 export type LootSplitResult = Readonly<{
-    perMember: DenomVector;
+    /**
+     * Per-member payout (same for all members).
+     */
+    perMemberPayout: DenomVector;
+    /**
+     * Pre-allocation routed to party fund (before splitting).
+     */
     partyFundSetAside: DenomVector;
+    /**
+     * Per-denomination remainder from splitting.
+     */
     partyFundRemainder: DenomVector;
+    /**
+     * Total routed to party fund: `setAside + remainder`.
+     */
     partyFundTotalFromOperation: DenomVector;
 }>;
