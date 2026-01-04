@@ -222,6 +222,9 @@ export default function HomePage() {
         }
 
         setLedger(next.value);
+        // Clear the inputs and results immediately to prevent duplicate submissions.
+        setLootPile(makeZeroDenomVector());
+        setSplitResult(null);
         setBanner({ kind: 'success', message: 'Committed to party fund (one deposit transaction).' });
     }
 
@@ -507,7 +510,11 @@ export default function HomePage() {
                             <div className={styles.muted}>Each party member receives the same per-denomination payout.</div>
 
                             <div className={styles.row}>
-                                <button className={styles.buttonPrimary} type="button" onClick={handleCommitSplit}>
+                                <button
+                                    className={styles.buttonPrimary}
+                                    type="button"
+                                    onClick={handleCommitSplit}
+                                >
                                     Commit to fund (one deposit)
                                 </button>
                             </div>
