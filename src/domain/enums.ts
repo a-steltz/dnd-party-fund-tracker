@@ -76,7 +76,7 @@ export enum PreAllocationMode {
     None = 'none',
     /** Set aside a fixed denomination vector (must be <= loot per denomination). */
     Fixed = 'fixed',
-    /** Set aside a percentage of total cp using an under-only greedy selection. */
+    /** Set aside up to a percentage of total cp (under-only, greedy max-under-target). */
     Percent = 'percent'
 }
 

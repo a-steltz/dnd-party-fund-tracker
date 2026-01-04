@@ -349,7 +349,7 @@ export default function HomePage() {
                             >
                                 <option value={PreAllocationMode.None}>None</option>
                                 <option value={PreAllocationMode.Fixed}>Fixed</option>
-                                <option value={PreAllocationMode.Percent}>Percent (under-only)</option>
+                                <option value={PreAllocationMode.Percent}>Percent (under-only, greedy)</option>
                             </select>
                         </label>
                     </div>
@@ -367,7 +367,7 @@ export default function HomePage() {
                     {preMode === PreAllocationMode.Percent ? (
                         <div className={styles.formGrid}>
                             <label className={styles.label}>
-                                Percent to set aside (0–100)
+                                Percent to set aside (0–100, under-only)
                                 <input
                                     className={styles.input}
                                     type="number"

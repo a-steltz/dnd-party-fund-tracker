@@ -81,7 +81,7 @@ export function computeLootSplit(input: LootSplitInput): Result<
             }
 
             //Execution
-            const percentageAllocationResult = computePercentPreAllocationInternal(input.loot, input.percent);
+            const percentageAllocationResult = computePercentUnderOnlyGreedyPreAllocationInternal(input.loot, input.percent);
             if (!percentageAllocationResult.ok) return percentageAllocationResult;
 
             remainingLoot = percentageAllocationResult.value.remainingLoot
@@ -149,7 +149,7 @@ function computeFixedPreAllocationInternal(
 
     return ok({
         remainingLoot: toDenomVector(remainingLoot),
-        partyFundAllocation: fixedAllocation
+        partyFundAllocation: toDenomVector(fixedAllocation)
     });
 
 }
@@ -160,7 +160,15 @@ function computeFixedPreAllocationInternal(
  * @remarks
  * Deterministic pass from highest to lowest denomination; no conversion/making change.
  */
-function computePercentPreAllocationInternal(initialLoot: DenomVector , percent: number)
+/**
+ * Percent-mode pre-allocation (UNDER-ONLY, greedy max-under-target).
+ *
+ * @remarks
+ * Selects a subset of existing coins to route to the party fund without exceeding a cp target.
+ * This aims to maximize the selected cp value under the target; it is not guaranteed to be the
+ * closest possible subset in arbitrary coin systems (but is fine for fixed D&D denominations).
+ */
+function computePercentUnderOnlyGreedyPreAllocationInternal(initialLoot: DenomVector , percent: number)
 : Result<Readonly<{ remainingLoot: DenomVector; partyFundAllocation: DenomVector }>, DomainError>
 {
 
