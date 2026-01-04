@@ -184,6 +184,8 @@ function computePercentPreAllocationInternal(initialLoot: DenomVector , percent:
         return err({ code: ErrorCode.INVALID_LOOT_DENOMINATOR })
     }
 
+    // UNDER-ONLY target in cp (no conversion/making change; cp total is informational).
+    const targetSetAsideCp = Math.floor(initialLootInCopper * percent);
 
     // Bussiness Logic
 
@@ -193,10 +195,11 @@ function computePercentPreAllocationInternal(initialLoot: DenomVector , percent:
     let setAsideAmountCp = 0
     for (const denomination of DENOMINATIONS_DESC) {
 
-        while ( remainingLoot[denomination] > 0)
+        while (remainingLoot[denomination] > 0 && setAsideAmountCp < targetSetAsideCp)
         {
-            // If the amount we are going to add would put us over, we are done.
-            if ((initialLootInCopper / (setAsideAmountCp + COIN_VALUE_CP[denomination])  ) > percent )
+            // If adding the next coin would exceed the target, stop taking this denomination.
+            const nextCp = setAsideAmountCp + COIN_VALUE_CP[denomination];
+            if (nextCp > targetSetAsideCp)
             {
                 break;
             }
@@ -204,7 +207,7 @@ function computePercentPreAllocationInternal(initialLoot: DenomVector , percent:
             // We are good to add the next coin to the party fund without going over the percent. Do so.
             remainingLoot[denomination]--;
             partyFundAllocation[denomination]++;
-            setAsideAmountCp += COIN_VALUE_CP[denomination];
+            setAsideAmountCp = nextCp;
         }
     }
 
