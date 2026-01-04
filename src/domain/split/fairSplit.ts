@@ -16,11 +16,19 @@
 
 import { DENOMINATIONS_DESC, ErrorCode, PreAllocationMode } from '@/domain/enums';
 import { Transaction } from '@/domain/ledger';
-import { addDenomVectors, cloneToMutableDenomVector, DenomVector, makeMutableZeroDenomVector, makeZeroDenomVector, toDenomVector, validateDenomVector } from '@/domain/money';
+import { COIN_VALUE_CP } from '@/domain/currency';
+import {
+    addDenomVectors,
+    cloneToMutableDenomVector,
+    DenomVector,
+    makeMutableZeroDenomVector,
+    makeZeroDenomVector,
+    toDenomVector,
+    totalCp,
+    validateDenomVector
+} from '@/domain/money';
 import { DomainError, Result, err, ok } from '@/domain/result';
 import { LootSplitInput, LootSplitResult } from '@/domain/split/types';
-import { totalCp} from '@/domain/money'
-import { COIN_VALUE_CP } from '../currency';
 
 
 
