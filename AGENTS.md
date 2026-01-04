@@ -64,6 +64,7 @@ The codebase is divided into three layers:
 - Coins are **discrete**.
 - NO coin conversion or “making change” anywhere.
 - All denomination counts are integers ≥ 0.
+- Currency ratios are fixed constants and are NOT persisted in exports.
 
 ### Transactions
 - ONLY two transaction types exist in V1:
@@ -86,10 +87,10 @@ The codebase is divided into three layers:
 - Pre-allocation modes:
   - none
   - fixed amount (denom vector)
-  - percent (UNDER-ONLY)
-- Fairness tolerance is fixed at **10cp** in V1.
-- Percent pre-allocation must NEVER exceed the target cp value.
+  - percent (UNDER-ONLY, greedy max-under-target)
+- Percent pre-allocation must NEVER exceed the target cp value (under-only).
 - Loot split algorithms must preserve total coins exactly.
+- Current split mode allocates the same `perMemberPayout` to every member (per-denomination split).
 
 ---
 
@@ -122,7 +123,7 @@ The codebase is divided into three layers:
 
 - Use **Vitest**
 - Test ONLY the domain layer in V1
-- Required test coverage:
+- Required test coverage (target; may be in-progress during early development):
   - denomination math
   - ledger replay correctness
   - withdrawal validation
@@ -154,7 +155,7 @@ Do NOT start with UI.
 ## Definition of Done
 
 Before declaring the task complete, the agent MUST:
-- Ensure all domain tests pass
+- Ensure all existing domain tests pass
 - Ensure `npm run build` succeeds
 - Confirm:
   - deposits/withdrawals work
@@ -163,6 +164,7 @@ Before declaring the task complete, the agent MUST:
   - commit creates ONE deposit tx for (setAside + remainder)
   - import/export replace-only works
 - List any deviations or TODOs explicitly
+- If split logic was changed, re-add/restore domain split tests.
 
 ---
 
