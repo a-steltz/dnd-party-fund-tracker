@@ -11,6 +11,7 @@ import { ledgerToJsonString, parseLedgerFromJsonString, readTextFile, downloadJs
 import { loadLedgerJsonFromLocalStorage, saveLedgerToLocalStorage, setLastExportedAt } from '@/storage/localLedgerStore';
 import { DenomVectorFields } from '@/ui/components/DenomVectorFields';
 import { Tabs } from '@/ui/components/Tabs';
+import { selectAllOnFirstMouseDown, selectAllOnFocus } from '@/ui/interaction/selectAllOnFirstClick';
 import { formatDenomsInline } from '@/ui/format';
 
 import styles from './page.module.css';
@@ -83,24 +84,6 @@ function formatGpEquivalentForTransaction(type: TransactionType, amounts: Parame
 function formatGpEquivalent(amounts: Parameters<typeof totalGpEquivalentRounded>[0]): string {
     const gp = totalGpEquivalentRounded(amounts);
     return `≈ ${gp.toLocaleString()} gp`;
-}
-
-function selectAllInput(input: HTMLInputElement): void {
-    try {
-        input.select();
-    } catch {
-        // Ignore selection failures (varies by browser/input type).
-    }
-}
-
-function focusAndSelectOnMouseDown(e: React.MouseEvent<HTMLInputElement>): void {
-    // If the field isn't focused yet, prevent the click from placing the caret and select all so the
-    // next typed digit replaces the whole value.
-    if (document.activeElement !== e.currentTarget) {
-        e.preventDefault();
-        e.currentTarget.focus();
-        selectAllInput(e.currentTarget);
-    }
 }
 
 /**
@@ -429,8 +412,8 @@ export default function HomePage() {
 	                                step={1}
 	                                value={partySize}
 	                                onChange={(e) => setPartySize(Number(e.target.value))}
-	                                onFocus={(e) => selectAllInput(e.currentTarget)}
-	                                onMouseDown={focusAndSelectOnMouseDown}
+	                                onFocus={selectAllOnFocus}
+	                                onMouseDown={selectAllOnFirstMouseDown}
 	                            />
 	                        </label>
 
@@ -470,8 +453,8 @@ export default function HomePage() {
 	                                    step={1}
 	                                    value={percentSetAside}
 	                                    onChange={(e) => setPercentSetAside(Number(e.target.value))}
-	                                    onFocus={(e) => selectAllInput(e.currentTarget)}
-	                                    onMouseDown={focusAndSelectOnMouseDown}
+	                                    onFocus={selectAllOnFocus}
+	                                    onMouseDown={selectAllOnFirstMouseDown}
 	                                />
 	                            </label>
 	                        </div>
