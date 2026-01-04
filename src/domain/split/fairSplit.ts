@@ -30,20 +30,14 @@ import {
 import { DomainError, Result, err, ok } from '@/domain/result';
 import { LootSplitInput, LootSplitResult } from '@/domain/split/types';
 
-
-
-
 /**
  * End-to-end loot split (pre-allocation + fair split).
  *
  * @remarks
  * UI entry point: returns per-member payout plus party-fund amounts (set-aside + remainder).
  */
-export function computeLootSplit(input: LootSplitInput): Result<
-    Readonly<LootSplitResult>,
-    DomainError
-> {
-    // First, do some basic validation that applies to all cases. 
+export function computeLootSplit(input: LootSplitInput): Result<LootSplitResult, DomainError> {
+    // First, do some basic validation that applies to all cases.
     if (!Number.isInteger(input.partySize) || input.partySize < 1) {
         return err({ code: ErrorCode.INVALID_PARTY_SIZE, details: { partySize: input.partySize } });
     }
@@ -64,7 +58,7 @@ export function computeLootSplit(input: LootSplitInput): Result<
         }
         case PreAllocationMode.Fixed: {
             // Validation: fixed-mode-specific validation (including per-denomination negative remainder)
-            // happens inside `computeFixesPreAllocationInternal` because it requires iterating the data.
+            // happens inside `computeFixedPreAllocationInternal` because it requires iterating the data.
             if (input.fixed === undefined) {
                 return err({
                     code: ErrorCode.MISSING_REQUIRED_FIELD,
@@ -88,11 +82,14 @@ export function computeLootSplit(input: LootSplitInput): Result<
                 });
             }
 
-            //Execution
-            const percentageAllocationResult = computePercentUnderOnlyGreedyPreAllocationInternal(input.loot, input.percent);
+            // Execution
+            const percentageAllocationResult = computePercentUnderOnlyGreedyPreAllocationInternal(
+                input.loot,
+                input.percent
+            );
             if (!percentageAllocationResult.ok) return percentageAllocationResult;
 
-            remainingLoot = percentageAllocationResult.value.remainingLoot
+            remainingLoot = percentageAllocationResult.value.remainingLoot;
             partyFundSetAside = percentageAllocationResult.value.partyFundAllocation;
             break;
         }
@@ -102,22 +99,19 @@ export function computeLootSplit(input: LootSplitInput): Result<
     }
 
 
-    // Split up the reamining loot;
-
-    const fairSplitResult = computeFairSplitInternal(remainingLoot,input.partySize)
+    // Split up the remaining loot.
+    const fairSplitResult = computeFairSplitInternal(remainingLoot, input.partySize);
 
     const perMemberPayout = fairSplitResult.perMemberPayout;
     const partyFundRemainder = fairSplitResult.partyFundRemainder;
-    const partyFundTotalFromOperation = addDenomVectors(partyFundSetAside,partyFundRemainder);
+    const partyFundTotalFromOperation = addDenomVectors(partyFundSetAside, partyFundRemainder);
 
-    return ok(
-        {
-            perMemberPayout : perMemberPayout ,
-            partyFundSetAside : partyFundSetAside , 
-            partyFundRemainder : partyFundRemainder , 
-            partyFundTotalFromOperation : partyFundTotalFromOperation
-        }
-    )
+    return ok({
+        perMemberPayout,
+        partyFundSetAside,
+        partyFundRemainder,
+        partyFundTotalFromOperation
+    });
 }
 
 /**
@@ -159,15 +153,8 @@ function computeFixedPreAllocationInternal(
         remainingLoot: toDenomVector(remainingLoot),
         partyFundAllocation: toDenomVector(fixedAllocation)
     });
-
 }
 
-/**
- * Percent-mode pre-allocation: greedily routes coins to the party fund without exceeding `percent`.
- *
- * @remarks
- * Deterministic pass from highest to lowest denomination; no conversion/making change.
- */
 /**
  * Percent-mode pre-allocation (UNDER-ONLY, greedy max-under-target).
  *
@@ -176,20 +163,16 @@ function computeFixedPreAllocationInternal(
  * This aims to maximize the selected cp value under the target; it is not guaranteed to be the
  * closest possible subset in arbitrary coin systems (but is fine for fixed D&D denominations).
  */
-function computePercentUnderOnlyGreedyPreAllocationInternal(initialLoot: DenomVector , percent: number)
-: Result<Readonly<{ remainingLoot: DenomVector; partyFundAllocation: DenomVector }>, DomainError>
-{
-
+function computePercentUnderOnlyGreedyPreAllocationInternal(
+    initialLoot: DenomVector,
+    percent: number
+): Result<Readonly<{ remainingLoot: DenomVector; partyFundAllocation: DenomVector }>, DomainError> {
     // Validation
-
-    
     const initialValidated = validateDenomVector(initialLoot);
-    if (!initialValidated.ok) 
-    {
+    if (!initialValidated.ok) {
         return initialValidated;
     }
-    
-    
+
     if (typeof percent !== 'number' || !Number.isFinite(percent) || percent < 0 || percent > 1) {
         return err({ code: ErrorCode.INVALID_PERCENT, details: { percent } });
     }
@@ -209,18 +192,15 @@ function computePercentUnderOnlyGreedyPreAllocationInternal(initialLoot: DenomVe
 
     // Bussiness Logic
 
-    const remainingLoot = cloneToMutableDenomVector(initialLoot)
+    const remainingLoot = cloneToMutableDenomVector(initialLoot);
     const partyFundAllocation = makeMutableZeroDenomVector();
 
-    let setAsideAmountCp = 0
+    let setAsideAmountCp = 0;
     for (const denomination of DENOMINATIONS_DESC) {
-
-        while (remainingLoot[denomination] > 0 && setAsideAmountCp < targetSetAsideCp)
-        {
+        while (remainingLoot[denomination] > 0 && setAsideAmountCp < targetSetAsideCp) {
             // If adding the next coin would exceed the target, stop taking this denomination.
             const nextCp = setAsideAmountCp + COIN_VALUE_CP[denomination];
-            if (nextCp > targetSetAsideCp)
-            {
+            if (nextCp > targetSetAsideCp) {
                 break;
             }
 
@@ -235,8 +215,7 @@ function computePercentUnderOnlyGreedyPreAllocationInternal(initialLoot: DenomVe
     return ok({
         remainingLoot: toDenomVector(remainingLoot),
         partyFundAllocation: toDenomVector(partyFundAllocation)
-    }); 
-
+    });
 }
 
 
