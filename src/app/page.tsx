@@ -72,6 +72,19 @@ function errorToMessage(code: ErrorCode): string {
     }
 }
 
+function formatGpEquivalentForTransaction(type: TransactionType, amounts: Parameters<typeof totalGpEquivalentRounded>[0]): string {
+    const gp = totalGpEquivalentRounded(amounts);
+    const sign = type === TransactionType.Withdraw ? -1 : 1;
+    const signed = gp * sign;
+    if (signed === 0) return '0 gp';
+    return `${signed > 0 ? '+' : ''}${signed.toLocaleString()} gp`;
+}
+
+function formatGpEquivalent(amounts: Parameters<typeof totalGpEquivalentRounded>[0]): string {
+    const gp = totalGpEquivalentRounded(amounts);
+    return `≈ ${gp.toLocaleString()} gp`;
+}
+
 /**
  * Single-page V1 UI containing two tabs:
  * - Party Fund (ledger + derived balance)
@@ -301,13 +314,13 @@ export default function HomePage() {
 
             {activeTab === 'fund' ? (
                 <section className={styles.section}>
-                    <h2 className={styles.sectionTitle}>Current Balance</h2>
+	                    <h2 className={styles.sectionTitle}>Current Balance</h2>
 	                    <div className={styles.balanceRow}>
 	                        <div className={styles.balanceCard}>
 	                            <div className={styles.balanceLabel}>Balance</div>
-	                            <div className={styles.balanceValue}>{formatDenomsInline(balance)}</div>
-	                            <div className={styles.balanceMeta}>
-	                                ≈ {balanceGpEquivalent.toLocaleString()} gp
+	                            <div className={styles.valueRow}>
+	                                <div className={styles.balanceValue}>{formatDenomsInline(balance)}</div>
+	                                <div className={styles.valueApprox}>{formatGpEquivalent(balance)}</div>
 	                            </div>
 	                        </div>
 	                    </div>
@@ -345,40 +358,44 @@ export default function HomePage() {
                         </button>
                     </div>
 
-                    <h2 className={styles.sectionTitle}>Ledger</h2>
-                    <div className={styles.tableWrap}>
-                        <table className={styles.table}>
-                            <thead>
-                                <tr>
-                                    <th>Time</th>
-                                    <th>Type</th>
-                                    <th>Amounts</th>
-                                    <th>Note</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {ledger.transactions.length === 0 ? (
-                                    <tr>
-                                        <td colSpan={4} className={styles.mutedCell}>
-                                            No transactions yet.
-                                        </td>
-                                    </tr>
-                                ) : (
-                                    ledger.transactions
-                                        .slice()
+	                    <h2 className={styles.sectionTitle}>Ledger</h2>
+	                    <div className={styles.tableWrap}>
+	                        <table className={styles.table}>
+	                            <thead>
+	                                <tr>
+	                                    <th>Time</th>
+	                                    <th>Type</th>
+	                                    <th>Amounts</th>
+	                                    <th>≈ GP</th>
+	                                    <th>Note</th>
+	                                </tr>
+	                            </thead>
+	                            <tbody>
+	                                {ledger.transactions.length === 0 ? (
+	                                    <tr>
+	                                        <td colSpan={5} className={styles.mutedCell}>
+	                                            No transactions yet.
+	                                        </td>
+	                                    </tr>
+	                                ) : (
+	                                    ledger.transactions
+	                                        .slice()
                                         .sort((a, b) => (a.timestamp < b.timestamp ? 1 : -1))
-                                        .map((tx) => (
-                                            <tr key={tx.id}>
-                                                <td className={styles.mono}>{tx.timestamp}</td>
-                                                <td>{tx.type}</td>
-                                                <td className={styles.mono}>{formatDenomsInline(tx.amounts)}</td>
-                                                <td>{tx.note ?? ''}</td>
-                                            </tr>
-                                        ))
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
+	                                        .map((tx) => (
+	                                            <tr key={tx.id}>
+	                                                <td className={styles.mono}>{tx.timestamp}</td>
+	                                                <td>{tx.type}</td>
+	                                                <td className={styles.mono}>{formatDenomsInline(tx.amounts)}</td>
+	                                                <td className={styles.mutedCell}>
+	                                                    {formatGpEquivalentForTransaction(tx.type, tx.amounts)}
+	                                                </td>
+	                                                <td>{tx.note ?? ''}</td>
+	                                            </tr>
+	                                        ))
+	                                )}
+	                            </tbody>
+	                        </table>
+	                    </div>
                 </section>
             ) : (
                 <section className={styles.section}>
@@ -450,21 +467,35 @@ export default function HomePage() {
                             <div className={styles.cards}>
                                 <div className={styles.card}>
                                     <div className={styles.cardLabel}>Party fund set-aside</div>
-                                    <div className={styles.mono}>{formatDenomsInline(splitResult.partyFundSetAside)}</div>
+                                    <div className={styles.valueRow}>
+                                        <div className={styles.mono}>{formatDenomsInline(splitResult.partyFundSetAside)}</div>
+                                        <div className={styles.valueApprox}>{formatGpEquivalent(splitResult.partyFundSetAside)}</div>
+                                    </div>
                                 </div>
                                 <div className={styles.card}>
                                     <div className={styles.cardLabel}>Party fund remainder</div>
-                                    <div className={styles.mono}>{formatDenomsInline(splitResult.partyFundRemainder)}</div>
+                                    <div className={styles.valueRow}>
+                                        <div className={styles.mono}>{formatDenomsInline(splitResult.partyFundRemainder)}</div>
+                                        <div className={styles.valueApprox}>{formatGpEquivalent(splitResult.partyFundRemainder)}</div>
+                                    </div>
                                 </div>
                                 <div className={styles.card}>
                                     <div className={styles.cardLabel}>Total to party fund</div>
-                                    <div className={styles.mono}>
-                                        {formatDenomsInline(splitResult.partyFundTotalFromOperation)}
+                                    <div className={styles.valueRow}>
+                                        <div className={styles.mono}>
+                                            {formatDenomsInline(splitResult.partyFundTotalFromOperation)}
+                                        </div>
+                                        <div className={styles.valueApprox}>
+                                            {formatGpEquivalent(splitResult.partyFundTotalFromOperation)}
+                                        </div>
                                     </div>
                                 </div>
                                 <div className={styles.card}>
                                     <div className={styles.cardLabel}>Per member</div>
-                                    <div className={styles.mono}>{formatDenomsInline(splitResult.perMemberPayout)}</div>
+                                    <div className={styles.valueRow}>
+                                        <div className={styles.mono}>{formatDenomsInline(splitResult.perMemberPayout)}</div>
+                                        <div className={styles.valueApprox}>{formatGpEquivalent(splitResult.perMemberPayout)}</div>
+                                    </div>
                                 </div>
                             </div>
 

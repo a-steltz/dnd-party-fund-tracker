@@ -175,9 +175,22 @@
 }
 
 .balanceMeta {
-    margin-top: 8px;
     font-size: 12px;
     color: rgba(0, 0, 0, 0.64);
+}
+
+.valueRow {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 8px 12px;
+}
+
+.valueApprox {
+    composes: muted;
+    margin-top: 0;
+    margin-left: auto;
+    white-space: nowrap;
 }
 
 .tableWrap {
@@ -299,6 +312,7 @@
     .mutedCell,
     .balanceLabel,
     .balanceMeta,
+    .valueApprox,
     .cardLabel {
         color: rgba(255, 255, 255, 0.64);
     }
