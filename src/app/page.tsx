@@ -274,7 +274,6 @@ export default function HomePage() {
             <header className={styles.header}>
                 <div>
                     <h1 className={styles.title}>D&amp;D Party Fund Tracker</h1>
-                    <p className={styles.subtitle}>Local-first ledger + loot split (V1)</p>
                 </div>
 
                 <div className={styles.actions}>
