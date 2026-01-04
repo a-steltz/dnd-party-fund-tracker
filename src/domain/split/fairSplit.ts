@@ -29,7 +29,7 @@ import { COIN_VALUE_CP } from '../currency';
  * End-to-end loot split (pre-allocation + fair split).
  *
  * @remarks
- * IMplementation in progress
+ * UI entry point: returns per-member payout plus party-fund amounts (set-aside + remainder).
  */
 export function computeLootSplit(input: LootSplitInput): Result<
     Readonly<LootSplitResult>,
@@ -112,6 +112,12 @@ export function computeLootSplit(input: LootSplitInput): Result<
     )
 }
 
+/**
+ * Fixed-mode pre-allocation: moves `fixedAllocation` to the party fund and returns the remainder.
+ *
+ * @remarks
+ * Fails if any denomination would go negative (i.e., `fixedAllocation[denom] > initialLoot[denom]`).
+ */
 function computeFixedPreAllocationInternal(
     initialLoot: DenomVector,
     fixedAllocation: DenomVector
@@ -149,12 +155,10 @@ function computeFixedPreAllocationInternal(
 }
 
 /**
- * This function take in the initial loot provided (before any subtractions), as well as
- * teh percentage of said loot we plan to allocate to the party fund, then calculates the amount to 
- * allocate. It takes a top down approach, and will get as close the the percent without exceeding it.
- * @param initialLoot 
- * @param percent 
- * @returns 
+ * Percent-mode pre-allocation: greedily routes coins to the party fund without exceeding `percent`.
+ *
+ * @remarks
+ * Deterministic pass from highest to lowest denomination; no conversion/making change.
  */
 function computePercentPreAllocationInternal(initialLoot: DenomVector , percent: number)
 : Result<Readonly<{ remainingLoot: DenomVector; partyFundAllocation: DenomVector }>, DomainError>
@@ -217,34 +221,14 @@ function computePercentPreAllocationInternal(initialLoot: DenomVector , percent:
 
 
 /**
- * Computes a simple "fair split" of a loot vector by splitting each denomination independently.
+ * Computes a simple per-denomination split.
  *
  * @remarks
- * This algorithm:
- * - does NOT make change / exchange across denominations
- * - gives each member a split of coins per denomination
- * - routes per-denomination remainders to the party fund remainder
+ * For each denomination `d`:
+ * - per-member payout = `floor(remainingLoot[d] / partySize)`
+ * - party-fund remainder = `remainingLoot[d] % partySize`
  *
- * Assumptions (enforced by the wrapper function, not here):
- * - `partySize` is an integer >= 1
- * - `remainingLoot` is a valid {@link DenomVector}
- *
- * Steps (per denomination):
- * 1) Read the available coin count `coins` for that denomination.
- * 2) Compute each member's payout for that denomination as `floor(coins / partySize)`.
- * 3) Compute the party-fund remainder for that denomination as `coins % partySize`.
- *
- * Invariants preserved:
- * - No conversion/making change: each denomination is processed independently.
- * - Conservation (per denomination): `coins == partySize * perMember + remainder`.
- * - Non-negativity: outputs are always >= 0 when inputs are valid.
- * - Determinism: no randomness and no ordering dependencies.
- *
- * Edge cases:
- * - If `coins < partySize`, then `perMember=0` and `remainder=coins`.
- * - If `coins === 0`, outputs remain zero for that denomination.
- *
- * TODO(domain): Replace with finalized fair split algorithm.
+ * No conversion/making change; deterministic.
  */
 function computeFairSplitInternal(
     remainingLoot: DenomVector,
@@ -279,7 +263,7 @@ function computeFairSplitInternal(
  * Builds the ONE deposit transaction required by V1 "Commit to fund".
  *
  * @remarks
- * This is intentionally not implemented yet.
+ * Should deposit exactly `partyFundTotalFromOperation` as ONE ledger transaction.
  */
 export function createCommitToFundDepositTransaction(_params: Readonly<{
     id: string;
