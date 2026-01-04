@@ -180,8 +180,12 @@ function computePercentPreAllocationInternal(initialLoot: DenomVector , percent:
 
     const initialLootInCopper = totalCp(initialLoot);
 
-    if (initialLootInCopper <= 0 ) {
-        return err({ code: ErrorCode.INVALID_LOOT_DENOMINATOR })
+    // If there is no loot, percent pre-allocation is trivially all-zero.
+    if (initialLootInCopper === 0) {
+        return ok({
+            remainingLoot: initialLoot,
+            partyFundAllocation: makeZeroDenomVector()
+        });
     }
 
     // UNDER-ONLY target in cp (no conversion/making change; cp total is informational).
