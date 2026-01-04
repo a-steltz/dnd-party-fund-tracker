@@ -394,12 +394,6 @@ export default function HomePage() {
                                 <div className={styles.card}>
                                     <div className={styles.cardLabel}>Party fund set-aside</div>
                                     <div className={styles.mono}>{formatDenomsInline(splitResult.partyFundSetAside)}</div>
-                                    {splitResult.percentTargetCp !== undefined ? (
-                                        <div className={styles.muted}>
-                                            Target cp: {splitResult.percentTargetCp} | Selected cp:{' '}
-                                            {splitResult.percentSelectedCp ?? 0}
-                                        </div>
-                                    ) : null}
                                 </div>
                                 <div className={styles.card}>
                                     <div className={styles.cardLabel}>Party fund remainder</div>
@@ -412,35 +406,13 @@ export default function HomePage() {
                                     </div>
                                 </div>
                                 <div className={styles.card}>
-                                    <div className={styles.cardLabel}>Fairness summary</div>
-                                    <div className={styles.muted}>
-                                        avg={splitResult.summary.avgCp}cp | min={splitResult.summary.minCp}cp | max=
-                                        {splitResult.summary.maxCp}cp | spread={splitResult.summary.spreadCp}cp
-                                    </div>
+                                    <div className={styles.cardLabel}>Per member</div>
+                                    <div className={styles.mono}>{formatDenomsInline(splitResult.perMember)}</div>
                                 </div>
                             </div>
 
                             <h3 className={styles.subTitle}>Member allocations</h3>
-                            <div className={styles.tableWrap}>
-                                <table className={styles.table}>
-                                    <thead>
-                                        <tr>
-                                            <th>Member</th>
-                                            <th>Coins</th>
-                                            <th>Total (cp)</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {splitResult.members.map((m, idx) => (
-                                            <tr key={idx}>
-                                                <td>Party Member {idx + 1}</td>
-                                                <td className={styles.mono}>{formatDenomsInline(m)}</td>
-                                                <td className={styles.mono}>{splitResult.memberTotalsCp[idx] ?? 0}</td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
+                            <div className={styles.muted}>Each party member receives the same per-denomination payout.</div>
 
                             <div className={styles.row}>
                                 <button className={styles.buttonPrimary} type="button" onClick={handleCommitSplit}>

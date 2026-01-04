@@ -18,32 +18,15 @@ export type LootSplitInput = Readonly<{
 }>;
 
 /**
- * Summary statistics describing fairness in cp terms.
- *
- * @remarks
- * These are informational totals; they do not imply coin conversion.
- */
-export type SplitSummaryStats = Readonly<{
-    avgCp: number;
-    minCp: number;
-    maxCp: number;
-    spreadCp: number;
-}>;
-
-/**
  * Outputs of the end-to-end loot split operation.
  *
  * @remarks
  * Conservation invariant:
- * `members + partyFundSetAside + partyFundRemainder == input loot` (by denomination).
+ * `partySize * perMember + partyFundSetAside + partyFundRemainder == input loot` (by denomination).
  */
 export type LootSplitResult = Readonly<{
-    members: readonly DenomVector[];
-    memberTotalsCp: readonly number[];
+    perMember: DenomVector;
     partyFundSetAside: DenomVector;
     partyFundRemainder: DenomVector;
     partyFundTotalFromOperation: DenomVector;
-    summary: SplitSummaryStats;
-    percentTargetCp?: number;
-    percentSelectedCp?: number;
 }>;

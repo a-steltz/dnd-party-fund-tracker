@@ -18,7 +18,7 @@ import { DENOMINATIONS_DESC, ErrorCode, PreAllocationMode } from '@/domain/enums
 import { Transaction } from '@/domain/ledger';
 import { cloneToMutableDenomVector, DenomVector, makeMutableZeroDenomVector, makeZeroDenomVector, toDenomVector, validateDenomVector } from '@/domain/money';
 import { DomainError, Result, err, ok } from '@/domain/result';
-import { LootSplitInput, LootSplitResult, SplitSummaryStats } from '@/domain/split/types';
+import { LootSplitInput, LootSplitResult } from '@/domain/split/types';
 import { totalCp} from '@/domain/money'
 import { COIN_VALUE_CP } from '../currency';
 
