@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { ErrorCode, PreAllocationMode, TransactionType } from '@/domain/enums';
 import { appendTransaction, computeBalance, createNewLedgerDocument, LedgerDocument, withLastModifiedAt } from '@/domain/ledger';
-import { makeZeroDenomVector } from '@/domain/money';
+import { makeZeroDenomVector, totalGpEquivalentRounded } from '@/domain/money';
 import { computeLootSplit, createCommitToFundDepositTransaction } from '@/domain/split/fairSplit';
 import { LootSplitResult } from '@/domain/split/types';
 import { ledgerToJsonString, parseLedgerFromJsonString, readTextFile, downloadJson } from '@/storage/importExport';
@@ -86,6 +86,7 @@ export default function HomePage() {
     const importFileInputRef = useRef<HTMLInputElement | null>(null);
 
     const balance = useMemo(() => computeBalance(ledger.transactions), [ledger.transactions]);
+    const balanceGpEquivalent = useMemo(() => totalGpEquivalentRounded(balance), [balance]);
 
     // Party fund transaction form state
     const [txType, setTxType] = useState<TransactionType>(TransactionType.Deposit);
@@ -301,12 +302,15 @@ export default function HomePage() {
             {activeTab === 'fund' ? (
                 <section className={styles.section}>
                     <h2 className={styles.sectionTitle}>Current Balance</h2>
-                    <div className={styles.balanceRow}>
-                        <div className={styles.balanceCard}>
-                            <div className={styles.balanceLabel}>Balance</div>
-                            <div className={styles.balanceValue}>{formatDenomsInline(balance)}</div>
-                        </div>
-                    </div>
+	                    <div className={styles.balanceRow}>
+	                        <div className={styles.balanceCard}>
+	                            <div className={styles.balanceLabel}>Balance</div>
+	                            <div className={styles.balanceValue}>{formatDenomsInline(balance)}</div>
+	                            <div className={styles.balanceMeta}>
+	                                ≈ {balanceGpEquivalent.toLocaleString()} gp
+	                            </div>
+	                        </div>
+	                    </div>
 
                     <h2 className={styles.sectionTitle}>Add Transaction</h2>
                     <div className={styles.formGrid}>

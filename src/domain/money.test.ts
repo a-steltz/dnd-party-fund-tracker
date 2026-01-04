@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { Denomination, ErrorCode } from '@/domain/enums';
-import { addDenomVectors, makeZeroDenomVector, subtractDenomVectors, totalCp } from '@/domain/money';
+import { addDenomVectors, makeZeroDenomVector, subtractDenomVectors, totalCp, totalGpEquivalentRounded } from '@/domain/money';
 
 /**
  * Domain unit tests for denomination math helpers.
@@ -61,5 +61,10 @@ describe('domain/money', () => {
 
         // 1pp=1000, 2gp=200, 1ep=50, 3sp=30, 4cp=4
         expect(totalCp(denoms)).toBe(1284);
+    });
+
+    it('computes totalGpEquivalentRounded by rounding to nearest 1gp', () => {
+        const denoms = { ...makeZeroDenomVector(), [Denomination.GP]: 1, [Denomination.CP]: 51 }; // 151cp
+        expect(totalGpEquivalentRounded(denoms)).toBe(2);
     });
 });

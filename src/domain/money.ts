@@ -33,6 +33,15 @@ export type DenomVector = Readonly<Record<Denomination, number>>;
 export type MutableDenomVector = Record<Denomination, number>;
 
 /**
+ * Read-only view of a denomination vector.
+ *
+ * @remarks
+ * Useful for functions that only read values (e.g. totals). Both {@link DenomVector} and
+ * {@link MutableDenomVector} are assignable to this type.
+ */
+export type DenomVectorLike = Readonly<Record<Denomination, number>>;
+
+/**
  * Creates a zero-filled denomination vector.
  */
 export function makeZeroDenomVector(): DenomVector {
@@ -196,11 +205,23 @@ export function subtractDenomVectors(a: DenomVector, b: DenomVector): Result<Den
  * @remarks
  * This does not imply conversion; it is a computed total used for percent targeting and reporting.
  */
-export function totalCp(denoms: DenomVector): number {
+export function totalCp(denoms: DenomVectorLike): number {
     // This is safe because V1 uses small integers; callers can treat this as informational only.
     let sum = 0;
     for (const denom of DENOMINATIONS_DESC) {
         sum += denoms[denom] * COIN_VALUE_CP[denom];
     }
     return sum;
+}
+
+/**
+ * Computes an approximate "GP equivalent" for display by rounding to the nearest 1gp.
+ *
+ * @remarks
+ * - This is an informational display-only value.
+ * - V1 forbids coin conversion/making change; no balances are altered.
+ */
+export function totalGpEquivalentRounded(denoms: DenomVectorLike): number {
+    const gpValueCp = COIN_VALUE_CP[Denomination.GP];
+    return Math.round(totalCp(denoms) / gpValueCp);
 }

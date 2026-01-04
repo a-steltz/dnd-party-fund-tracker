@@ -36,6 +36,14 @@ export function DenomVectorFields(props: Readonly<{ value: DenomVector; onChange
         props.onChange(next);
     }
 
+    function selectAll(input: HTMLInputElement): void {
+        try {
+            input.select();
+        } catch {
+            // Some browsers may not fully support selecting on certain input types; ignore.
+        }
+    }
+
     return (
         <div className={styles.grid}>
             {DENOMINATIONS_DESC.map((denom) => (
@@ -48,6 +56,16 @@ export function DenomVectorFields(props: Readonly<{ value: DenomVector; onChange
                         step={1}
                         value={props.value[denom] ?? 0}
                         onChange={(e) => set(denom, e.target.value)}
+                        onFocus={(e) => selectAll(e.currentTarget)}
+                        onMouseDown={(e) => {
+                            // If the field isn't focused yet, prevent the click from placing the caret and
+                            // select all so the next typed digit replaces the whole value.
+                            if (document.activeElement !== e.currentTarget) {
+                                e.preventDefault();
+                                e.currentTarget.focus();
+                                selectAll(e.currentTarget);
+                            }
+                        }}
                     />
                 </label>
             ))}
