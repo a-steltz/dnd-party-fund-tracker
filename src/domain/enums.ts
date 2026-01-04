@@ -122,5 +122,7 @@ export enum ErrorCode {
     /** A required input field is missing for the chosen mode. */
     MISSING_REQUIRED_FIELD = 'MISSING_REQUIRED_FIELD',
     /** Pre-allocation mode value is invalid/unsupported. */
-    INVALID_PREALLOCATION_MODE = 'INVALID_PREALLOCATION_MODE'
+    INVALID_PREALLOCATION_MODE = 'INVALID_PREALLOCATION_MODE',
+    /** When we are trying to determine a percent allocation for a loot pile worth 0 or less */
+    INVALID_LOOT_DENOMINATOR = "INVALID_LOOT_DENOMINATOR"
 }
