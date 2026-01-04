@@ -83,6 +83,7 @@ export default function HomePage() {
     const [banner, setBanner] = useState<UiBanner>({ kind: 'none' });
     const canAutosaveRef = useRef(false);
     const initialLedgerRef = useRef<LedgerDocument>(ledger);
+    const importFileInputRef = useRef<HTMLInputElement | null>(null);
 
     const balance = useMemo(() => computeBalance(ledger.transactions), [ledger.transactions]);
 
@@ -262,15 +263,20 @@ export default function HomePage() {
                 </div>
 
                 <div className={styles.actions}>
-                    <label className={styles.fileLabel}>
+                    <input
+                        ref={importFileInputRef}
+                        className={styles.fileInput}
+                        type="file"
+                        accept="application/json"
+                        onChange={(e) => void handleImport(e.target.files?.[0] ?? null)}
+                    />
+                    <button
+                        className={styles.button}
+                        type="button"
+                        onClick={() => importFileInputRef.current?.click()}
+                    >
                         Import JSON
-                        <input
-                            className={styles.fileInput}
-                            type="file"
-                            accept="application/json"
-                            onChange={(e) => void handleImport(e.target.files?.[0] ?? null)}
-                        />
-                    </label>
+                    </button>
                     <button className={styles.button} type="button" onClick={handleExport}>
                         Export JSON
                     </button>
