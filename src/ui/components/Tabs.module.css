@@ -25,6 +25,12 @@
     border-color: rgba(0, 0, 0, 0.28);
 }
 
+.tab:focus-visible,
+.tabActive:focus-visible {
+    outline: 3px solid rgba(0, 120, 255, 0.85);
+    outline-offset: 2px;
+}
+
 @media (prefers-color-scheme: dark) {
     .nav {
         border-color: rgba(255, 255, 255, 0.18);
@@ -42,5 +48,9 @@
         color: rgba(0, 0, 0, 0.9);
         border-color: rgba(255, 255, 255, 0.3);
     }
-}
 
+    .tab:focus-visible,
+    .tabActive:focus-visible {
+        outline-color: rgba(120, 190, 255, 0.95);
+    }
+}

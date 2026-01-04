@@ -66,6 +66,12 @@
     justify-content: center;
 }
 
+.button:focus-visible,
+.buttonPrimary:focus-visible {
+    outline: 3px solid rgba(0, 120, 255, 0.85);
+    outline-offset: 2px;
+}
+
 .buttonPrimary {
     border: 1px solid rgba(0, 0, 0, 0.2);
     padding: 10px 14px;
@@ -310,5 +316,10 @@
 
     .buttonPrimary:hover {
         background: rgba(255, 255, 255, 0.98);
+    }
+
+    .button:focus-visible,
+    .buttonPrimary:focus-visible {
+        outline-color: rgba(120, 190, 255, 0.95);
     }
 }
