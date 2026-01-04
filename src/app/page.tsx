@@ -87,6 +87,26 @@ function formatGpEquivalent(amounts: Parameters<typeof totalGpEquivalentRounded>
 }
 
 /**
+ * Formats an ISO-UTC timestamp for display in the user's local timezone.
+ *
+ * @remarks
+ * Ledger timestamps remain stored in UTC (ISO strings). This is display-only formatting.
+ */
+function formatTimestampLocalForLedgerDisplay(isoUtc: string): string {
+    const date = new Date(isoUtc);
+    if (Number.isNaN(date.getTime())) return isoUtc;
+    const formatted = new Intl.DateTimeFormat('en-US', {
+        year: '2-digit',
+        month: '2-digit',
+        day: '2-digit',
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+    }).format(date);
+    return formatted.replace(',', '');
+}
+
+/**
  * Single-page V1 UI containing two tabs:
  * - Party Fund (ledger + derived balance)
  * - Loot Split (calculator + commit-to-fund)
@@ -381,17 +401,21 @@ export default function HomePage() {
 	                                        </td>
 	                                    </tr>
 	                                ) : (
-	                                    ledger.transactions
-	                                        .slice()
-                                        .sort((a, b) => (a.timestamp < b.timestamp ? 1 : -1))
-	                                        .map((tx) => (
-	                                            <tr key={tx.id}>
-	                                                <td className={styles.mono}>{tx.timestamp}</td>
-	                                                <td>{tx.type}</td>
-	                                                <td className={styles.mono}>{formatDenomsInline(tx.amounts)}</td>
-	                                                <td className={styles.mutedCell}>
-	                                                    {formatGpEquivalentForTransaction(tx.type, tx.amounts)}
-	                                                </td>
+		                                    ledger.transactions
+		                                        .slice()
+		                                        .sort((a, b) => (a.timestamp < b.timestamp ? 1 : -1))
+		                                        .map((tx) => (
+		                                            <tr key={tx.id}>
+		                                                <td className={styles.mono}>
+		                                                    <time dateTime={tx.timestamp} title={tx.timestamp}>
+		                                                        {formatTimestampLocalForLedgerDisplay(tx.timestamp)}
+		                                                    </time>
+		                                                </td>
+		                                                <td>{tx.type}</td>
+		                                                <td className={styles.mono}>{formatDenomsInline(tx.amounts)}</td>
+		                                                <td className={styles.mutedCell}>
+		                                                    {formatGpEquivalentForTransaction(tx.type, tx.amounts)}
+		                                                </td>
 	                                                <td>{tx.note ?? ''}</td>
 	                                            </tr>
 	                                        ))
