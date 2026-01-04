@@ -85,6 +85,24 @@ function formatGpEquivalent(amounts: Parameters<typeof totalGpEquivalentRounded>
     return `≈ ${gp.toLocaleString()} gp`;
 }
 
+function selectAllInput(input: HTMLInputElement): void {
+    try {
+        input.select();
+    } catch {
+        // Ignore selection failures (varies by browser/input type).
+    }
+}
+
+function focusAndSelectOnMouseDown(e: React.MouseEvent<HTMLInputElement>): void {
+    // If the field isn't focused yet, prevent the click from placing the caret and select all so the
+    // next typed digit replaces the whole value.
+    if (document.activeElement !== e.currentTarget) {
+        e.preventDefault();
+        e.currentTarget.focus();
+        selectAllInput(e.currentTarget);
+    }
+}
+
 /**
  * Single-page V1 UI containing two tabs:
  * - Party Fund (ledger + derived balance)
@@ -404,15 +422,17 @@ export default function HomePage() {
                     <div className={styles.formGrid}>
                         <label className={styles.label}>
                             Party size
-                            <input
-                                className={styles.input}
-                                type="number"
-                                min={1}
-                                step={1}
-                                value={partySize}
-                                onChange={(e) => setPartySize(Number(e.target.value))}
-                            />
-                        </label>
+	                            <input
+	                                className={styles.input}
+	                                type="number"
+	                                min={1}
+	                                step={1}
+	                                value={partySize}
+	                                onChange={(e) => setPartySize(Number(e.target.value))}
+	                                onFocus={(e) => selectAllInput(e.currentTarget)}
+	                                onMouseDown={focusAndSelectOnMouseDown}
+	                            />
+	                        </label>
 
                         <label className={styles.label}>
                             Pre-allocation mode
@@ -442,18 +462,20 @@ export default function HomePage() {
                         <div className={styles.formGrid}>
                             <label className={styles.label}>
                                 Percent to set aside (0–100, under-only)
-                                <input
-                                    className={styles.input}
-                                    type="number"
-                                    min={0}
-                                    max={100}
-                                    step={1}
-                                    value={percentSetAside}
-                                    onChange={(e) => setPercentSetAside(Number(e.target.value))}
-                                />
-                            </label>
-                        </div>
-                    ) : null}
+	                                <input
+	                                    className={styles.input}
+	                                    type="number"
+	                                    min={0}
+	                                    max={100}
+	                                    step={1}
+	                                    value={percentSetAside}
+	                                    onChange={(e) => setPercentSetAside(Number(e.target.value))}
+	                                    onFocus={(e) => selectAllInput(e.currentTarget)}
+	                                    onMouseDown={focusAndSelectOnMouseDown}
+	                                />
+	                            </label>
+	                        </div>
+	                    ) : null}
 
                     <div className={styles.row}>
                         <button className={styles.buttonPrimary} type="button" onClick={handleCalculateSplit}>
