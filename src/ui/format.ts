@@ -1,5 +1,5 @@
 import { DENOMINATIONS_DESC } from '@/domain/enums';
-import { DenomVector, isAllZero } from '@/domain/money';
+import { DenomVector, isAllZero, totalGpEquivalentRounded } from '@/domain/money';
 
 /**
  * Formats a DenomVector into a compact, human-readable string (e.g., "2gp 5sp 1cp").
@@ -16,4 +16,15 @@ export function formatDenomsInline(denoms: DenomVector): string {
         if (count !== 0) parts.push(`${count}${denom}`);
     }
     return parts.join(' ');
+}
+
+/**
+ * Formats a DenomVector into an approximate gp value string.
+ *
+ * @remarks
+ * Display-only helper for showing a rounded gp equivalent.
+ */
+export function formatGpEquivalent(denoms: DenomVector): string {
+    const gp = totalGpEquivalentRounded(denoms);
+    return `~ ${gp.toLocaleString()} gp`;
 }

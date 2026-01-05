@@ -4,15 +4,16 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { ErrorCode, PreAllocationMode, TransactionType } from '@/domain/enums';
 import { appendTransaction, computeBalance, createNewLedgerDocument, LedgerDocument, withLastModifiedAt } from '@/domain/ledger';
-import { makeZeroDenomVector, totalGpEquivalentRounded } from '@/domain/money';
+import { makeZeroDenomVector } from '@/domain/money';
 import { computeLootSplit, createCommitToFundDepositTransaction } from '@/domain/split/fairSplit';
 import { LootSplitResult } from '@/domain/split/types';
 import { ledgerToJsonString, parseLedgerFromJsonString, readTextFile, downloadJson } from '@/storage/importExport';
 import { loadLedgerJsonFromLocalStorage, saveLedgerToLocalStorage, setLastExportedAt } from '@/storage/localLedgerStore';
-import { DenomVectorFields } from '@/ui/components/DenomVectorFields';
+import { LedgerTable } from '@/ui/components/LedgerTable';
+import { LootSplitCalculator } from '@/ui/components/LootSplitCalculator';
+import { TransactionForm } from '@/ui/components/TransactionForm';
 import { Tabs } from '@/ui/components/Tabs';
-import { selectAllOnFirstMouseDown, selectAllOnFocus } from '@/ui/interaction/selectAllOnFirstClick';
-import { formatDenomsInline } from '@/ui/format';
+import { formatDenomsInline, formatGpEquivalent } from '@/ui/format';
 
 import styles from './page.module.css';
 
@@ -73,38 +74,6 @@ function errorToMessage(code: ErrorCode): string {
     }
 }
 
-function formatGpEquivalentForTransaction(type: TransactionType, amounts: Parameters<typeof totalGpEquivalentRounded>[0]): string {
-    const gp = totalGpEquivalentRounded(amounts);
-    const sign = type === TransactionType.Withdraw ? -1 : 1;
-    const signed = gp * sign;
-    if (signed === 0) return '0 gp';
-    return `${signed > 0 ? '+' : ''}${signed.toLocaleString()} gp`;
-}
-
-function formatGpEquivalent(amounts: Parameters<typeof totalGpEquivalentRounded>[0]): string {
-    const gp = totalGpEquivalentRounded(amounts);
-    return `≈ ${gp.toLocaleString()} gp`;
-}
-
-/**
- * Formats an ISO-UTC timestamp for display in the user's local timezone.
- *
- * @remarks
- * Ledger timestamps remain stored in UTC (ISO strings). This is display-only formatting.
- */
-function formatTimestampLocalForLedgerDisplay(isoUtc: string): string {
-    const date = new Date(isoUtc);
-    if (Number.isNaN(date.getTime())) return isoUtc;
-    const formatted = new Intl.DateTimeFormat('en-US', {
-        year: '2-digit',
-        month: '2-digit',
-        day: '2-digit',
-        hour: 'numeric',
-        minute: '2-digit',
-        hour12: true
-    }).format(date);
-    return formatted.replace(',', '');
-}
 
 /**
  * Single-page V1 UI containing two tabs:
@@ -120,7 +89,6 @@ export default function HomePage() {
     const importFileInputRef = useRef<HTMLInputElement | null>(null);
 
     const balance = useMemo(() => computeBalance(ledger.transactions), [ledger.transactions]);
-    const balanceGpEquivalent = useMemo(() => totalGpEquivalentRounded(balance), [balance]);
 
     // Party fund transaction form state
     const [txType, setTxType] = useState<TransactionType>(TransactionType.Deposit);
@@ -349,203 +317,36 @@ export default function HomePage() {
 	                    </div>
 
                     <h2 className={styles.sectionTitle}>Add Transaction</h2>
-                    <div className={styles.formGrid}>
-                        <label className={styles.label}>
-                            Type
-                            <select
-                                className={styles.select}
-                                value={txType}
-                                onChange={(e) => setTxType(e.target.value as TransactionType)}
-                            >
-                                <option value={TransactionType.Deposit}>Deposit</option>
-                                <option value={TransactionType.Withdraw}>Withdraw</option>
-                            </select>
-                        </label>
-
-                        <label className={styles.label}>
-                            Note (optional)
-                            <input
-                                className={styles.input}
-                                value={txNote}
-                                onChange={(e) => setTxNote(e.target.value)}
-                                placeholder="e.g., Sold treasure, bought supplies…"
-                            />
-                        </label>
-                    </div>
-
-                    <DenomVectorFields value={txAmounts} onChange={setTxAmounts} />
-
-                    <div className={styles.row}>
-                        <button className={styles.buttonPrimary} type="button" onClick={handleAppendTransaction}>
-                            Add
-                        </button>
-                    </div>
+                    <TransactionForm
+                        type={txType}
+                        note={txNote}
+                        amounts={txAmounts}
+                        onTypeChange={setTxType}
+                        onNoteChange={setTxNote}
+                        onAmountsChange={setTxAmounts}
+                        onSubmit={handleAppendTransaction}
+                    />
 
 	                    <h2 className={styles.sectionTitle}>Ledger</h2>
-	                    <div className={styles.tableWrap}>
-	                        <table className={styles.table}>
-	                            <thead>
-	                                <tr>
-	                                    <th>Time</th>
-	                                    <th>Type</th>
-	                                    <th>Amounts</th>
-	                                    <th>≈ GP</th>
-	                                    <th>Note</th>
-	                                </tr>
-	                            </thead>
-	                            <tbody>
-	                                {ledger.transactions.length === 0 ? (
-	                                    <tr>
-	                                        <td colSpan={5} className={styles.mutedCell}>
-	                                            No transactions yet.
-	                                        </td>
-	                                    </tr>
-	                                ) : (
-		                                    ledger.transactions
-		                                        .slice()
-		                                        .sort((a, b) => (a.timestamp < b.timestamp ? 1 : -1))
-		                                        .map((tx) => (
-		                                            <tr key={tx.id}>
-		                                                <td className={styles.mono}>
-		                                                    <time dateTime={tx.timestamp} title={tx.timestamp}>
-		                                                        {formatTimestampLocalForLedgerDisplay(tx.timestamp)}
-		                                                    </time>
-		                                                </td>
-		                                                <td>{tx.type}</td>
-		                                                <td className={styles.mono}>{formatDenomsInline(tx.amounts)}</td>
-		                                                <td className={styles.mutedCell}>
-		                                                    {formatGpEquivalentForTransaction(tx.type, tx.amounts)}
-		                                                </td>
-	                                                <td>{tx.note ?? ''}</td>
-	                                            </tr>
-	                                        ))
-	                                )}
-	                            </tbody>
-	                        </table>
-	                    </div>
+	                    <LedgerTable transactions={ledger.transactions} />
                 </section>
             ) : (
                 <section className={styles.section}>
-                    <h2 className={styles.sectionTitle}>Inputs</h2>
-
-                    <div className={styles.formGrid}>
-                        <label className={styles.label}>
-                            Party size
-	                            <input
-	                                className={styles.input}
-	                                type="number"
-	                                min={1}
-	                                step={1}
-	                                value={partySize}
-	                                onChange={(e) => setPartySize(Number(e.target.value))}
-	                                onFocus={selectAllOnFocus}
-	                                onMouseDown={selectAllOnFirstMouseDown}
-	                            />
-	                        </label>
-
-                        <label className={styles.label}>
-                            Pre-allocation mode
-                            <select
-                                className={styles.select}
-                                value={preMode}
-                                onChange={(e) => setPreMode(e.target.value as PreAllocationMode)}
-                            >
-                                <option value={PreAllocationMode.None}>None</option>
-                                <option value={PreAllocationMode.Fixed}>Fixed</option>
-                                <option value={PreAllocationMode.Percent}>Percent (under-only, greedy)</option>
-                            </select>
-                        </label>
-                    </div>
-
-                    <h3 className={styles.subTitle}>Loot pile</h3>
-                    <DenomVectorFields value={lootPile} onChange={setLootPile} />
-
-                    {preMode === PreAllocationMode.Fixed ? (
-                        <>
-                            <h3 className={styles.subTitle}>Set aside to party fund (fixed)</h3>
-                            <DenomVectorFields value={fixedSetAside} onChange={setFixedSetAside} />
-                        </>
-                    ) : null}
-
-                    {preMode === PreAllocationMode.Percent ? (
-                        <div className={styles.formGrid}>
-                            <label className={styles.label}>
-                                Percent to set aside (0–100, under-only)
-	                                <input
-	                                    className={styles.input}
-	                                    type="number"
-	                                    min={0}
-	                                    max={100}
-	                                    step={1}
-	                                    value={percentSetAside}
-	                                    onChange={(e) => setPercentSetAside(Number(e.target.value))}
-	                                    onFocus={selectAllOnFocus}
-	                                    onMouseDown={selectAllOnFirstMouseDown}
-	                                />
-	                            </label>
-	                        </div>
-	                    ) : null}
-
-                    <div className={styles.row}>
-                        <button className={styles.buttonPrimary} type="button" onClick={handleCalculateSplit}>
-                            Calculate
-                        </button>
-                    </div>
-
-                    {splitResult ? (
-                        <>
-                            <h2 className={styles.sectionTitle}>Results</h2>
-                            <div className={styles.cards}>
-                                <div className={styles.card}>
-                                    <div className={styles.cardLabel}>Party fund set-aside</div>
-                                    <div className={styles.valueRow}>
-                                        <div className={styles.mono}>{formatDenomsInline(splitResult.partyFundSetAside)}</div>
-                                        <div className={styles.valueApprox}>{formatGpEquivalent(splitResult.partyFundSetAside)}</div>
-                                    </div>
-                                </div>
-                                <div className={styles.card}>
-                                    <div className={styles.cardLabel}>Party fund remainder</div>
-                                    <div className={styles.valueRow}>
-                                        <div className={styles.mono}>{formatDenomsInline(splitResult.partyFundRemainder)}</div>
-                                        <div className={styles.valueApprox}>{formatGpEquivalent(splitResult.partyFundRemainder)}</div>
-                                    </div>
-                                </div>
-                                <div className={styles.card}>
-                                    <div className={styles.cardLabel}>Total to party fund</div>
-                                    <div className={styles.valueRow}>
-                                        <div className={styles.mono}>
-                                            {formatDenomsInline(splitResult.partyFundTotalFromOperation)}
-                                        </div>
-                                        <div className={styles.valueApprox}>
-                                            {formatGpEquivalent(splitResult.partyFundTotalFromOperation)}
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className={styles.card}>
-                                    <div className={styles.cardLabel}>Per member</div>
-                                    <div className={styles.valueRow}>
-                                        <div className={styles.mono}>{formatDenomsInline(splitResult.perMemberPayout)}</div>
-                                        <div className={styles.valueApprox}>{formatGpEquivalent(splitResult.perMemberPayout)}</div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <h3 className={styles.subTitle}>Member allocations</h3>
-                            <div className={styles.muted}>Each party member receives the same per-denomination payout.</div>
-
-                            <div className={styles.row}>
-                                <button
-                                    className={styles.buttonPrimary}
-                                    type="button"
-                                    onClick={handleCommitSplit}
-                                >
-                                    Commit to fund (one deposit)
-                                </button>
-                            </div>
-                        </>
-                    ) : (
-                        <div className={styles.muted}>No calculation yet.</div>
-                    )}
+                    <LootSplitCalculator
+                        partySize={partySize}
+                        lootPile={lootPile}
+                        preMode={preMode}
+                        fixedSetAside={fixedSetAside}
+                        percentSetAside={percentSetAside}
+                        splitResult={splitResult}
+                        onPartySizeChange={setPartySize}
+                        onLootPileChange={setLootPile}
+                        onPreModeChange={setPreMode}
+                        onFixedSetAsideChange={setFixedSetAside}
+                        onPercentSetAsideChange={setPercentSetAside}
+                        onCalculate={handleCalculateSplit}
+                        onCommit={handleCommitSplit}
+                    />
                 </section>
             )}
         </main>
